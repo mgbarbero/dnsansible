@@ -1,0 +1,11 @@
+---
+- name: Obtener dns
+  hosts: webservers
+  tasks:
+    - name: Write them into a file
+      blockinfile:
+        block: "{{ ansible_facts.dns.nameservers }}"
+        create: yes
+        state: present
+        path: /tmp/resolv_conf_nameservers
+      delegate_to: workstation

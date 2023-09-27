@@ -1,0 +1,28 @@
+---
+- name: Obtener dns
+  hosts: webservers
+  tasks:
+    - name: Check if resolv exists
+      stat:
+        path: /etc/resolv.conf
+      register: resolv_conf
+
+    - name: Configure fact
+      set_fact:
+        content: "{{ lookup('file', '/etc/resolv.conf') }}"
+      when: resolv_conf.stat.exists
+
+    - name: Write them into a file
+      blockinfile:
+        block: "{{ content }}"
+        create: yes
+        state: present
+        path: /tmp/resolv_conf_nameservers
+      delegate_to: workstation
+
+    - name: Remove everything but nameservers
+      replace:
+        path: /tmp/resolv_conf_nameservers
+        regexp:  "^(?!nameserver).*$"
+        replace: ""
+      delegate_to: workstation
